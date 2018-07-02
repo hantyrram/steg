@@ -1,0 +1,4 @@
+{
+ "DEFAULT_ENCODER":"twoBitEncoder",
+ "MARKER" : ">>>ss"
+}

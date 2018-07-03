@@ -1,16 +1,20 @@
 
+const EncoderError = require('./EncoderError');
 /**
  * Encodes two bits of data unto an existing byte.Stores 2 bit data unto the 2 least significant bit,
  * preserving the existing 6 bits of data from the storageBuffer. The storage buffer's size should be greater 
  * than string length * 4.
- * @param {String/Array} data - The String or array of two bits data to encode
+ * @param {Strin} data - The String to encode
  * @param {Buffer} storageBuffer - The buffer where to encode the two bits pieces of the string, the first 6 bits should be preserved
  * @param {Offset} storageBufferOffset - The offset  in the storageBuffer where to start. Default = 0
  * @return storageBuffer with the data encoded on it
  */
 function encode(data,storageBuffer,storageBufferOffset = 0){
- 
-  let twoBitified = typeof data === "string" ? twoBitifier(data): data ;
+
+  if(typeof data !== 'string') throw new EncoderError('Invalid data type,type should be a string');
+
+  let twoBitified =  twoBitifier(data);
+
   let increment = 0;
   let index;
   while(twoBitified.length != 0){

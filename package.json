@@ -4,9 +4,11 @@
   "description": "Performs Steganography",
   "main": "index.js",
   "scripts": {
-    "Test": "echo \"Error: no test specified\" && exit 1",
-    "sTest": "node app/SteganographerTest"
+    "test": "mocha app/SteganographerTest"
   },
   "author": "Ronskielog",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "mocha": "^5.2.0"
+  }
 }

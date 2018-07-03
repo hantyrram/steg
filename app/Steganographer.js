@@ -1,5 +1,7 @@
+
 const filesystem = require('fs');
 const path = require('path');
+const StegError = require('./StegError');
 const encoder = require('./encoder');
 const DEFAULT_OFFSET = 1024;
 /**
@@ -8,17 +10,28 @@ const DEFAULT_OFFSET = 1024;
  */
 var storageBuffer = null;
 var writableOffset = 0; //the secret data's offset ??rename to dataOffset?
-var isReady = false;
 var secret;
 var secret_max_length = 0;
 
-class S{
+//this var is outside Steg so it can't be set
+// let isReady = false;
+
+/**
+ * Implements stegangoraphy. Writes data in as string on a media e.g. image file. How the data is written 
+ * depends on the selected encoder. 
+ * Usage : 
+ * Pass the path to the file to be used as storage/database medium.
+ * Invoke the ready() function passing it a callback which will recieve an instantialized instance of this class
+ * 
+ */
+class Steg{
  
  constructor(pathToFile){
   this.pathToFile = pathToFile;
+  this.isReady = false;
  }
 
- ready(callback){
+ ready(callback){  
   let self = this;
   //IIFE
   (async function(){
@@ -33,7 +46,7 @@ class S{
            console.log(`numBytesOfWrittenInt = ${offsetPlusNumBytesWritten}`);
            writableOffset = offsetPlusNumBytesWritten + 1;
            console.log(`Writable Offset = ${writableOffset}`);
-           isReady = true;
+           self.isReady = true;
            secret_max_length = Math.floor((storageBuffer.length - writableOffset) / 4);//??
            self.write("{}");//initialize
            self.commit();
@@ -48,7 +61,9 @@ class S{
            }
         }
         secret_max_length = Math.floor((storageBuffer.length - writableOffset) / 4);//??divided by 4 when using the twoBitEncoder only
-        isReady = true;
+
+        self.isReady = true;
+        
         // callback.call(self);
         callback(self);
    } catch (error) {
@@ -61,33 +76,28 @@ class S{
  }
 
  /**
-  * Writes the secret string
-  * @param {String} str - The secret string
+  * Writes the data to the buffer used by this class. Call commit() after write to actually write the data to the
+  * storage medium e.g. a bitmap file.
+  * The Steganographer does not care about the format of the string. It's up to the user to write a formatted 
+  * string like a JSON string.
+  * 
+  * Write operation always overwrites the entire data on the storage medium.
+  * 
+  * @param {String} str - The string to write
   */
  write(str){
   
-  if(isReady === false){
-   throw new Error('S Not Ready');
+  if(this.isReady === false){
+   throw new StegError('S Not Ready');
   }
 
   if(str.length >= secret_max_length){
-   throw new Error('Not enough storage');
+   throw new StegError('Not enough storage');
   }
-
   storageBuffer.writeUInt32BE(str.length, storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 1);
-  
   storageBuffer = encoder.encode(str,storageBuffer,writableOffset);
-  
-  
  }
 
- /**
-  * True if the S@ready function was invoked
-  * @return {Boolean} - true if S is ready
-  */
- get isReady(){
-  return isReady;
- }
 
  /**
   * The secret string saved on the image file
@@ -129,20 +139,26 @@ class S{
   // console.log(`@ Read dataLength = ${storageBuffer.readUInt32BE(dataLengthOffset)}`);
   // process.exit(0);
 
-  if(isReady === false){
-    throw new Error('S Not Ready');
+  if(this.isReady === false){
+    throw new StegError('S Not Ready');
   }
 
   let dataLengthOffset = storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 1;
   secret = encoder.decode(storageBuffer,storageBuffer.readUInt32BE(dataLengthOffset),writableOffset); 
   return secret;
-  
+ }
 
+ purge(){
+   this.write('');
+   this.commit();
+   return this.read();
  }
 
 }
 
 // createSnapshot(){}
+
+/*--------------Util----------------*/
 
 /**
  * Reads the file and returns the file buffer
@@ -170,6 +186,7 @@ async function initStorageBuffer(location){
  
 }
 
+
 /**
  * Checks if the storage Buffer contains a CONFIG.MARKER
  * @param {Mixed} false if CONFIG.MARKER is not found on the storageBuffer, returns the offset of the CONFIG.MARKER if found
@@ -180,10 +197,9 @@ function markerFound(storageBuffer,marker){
  }else{
   return true;
  }
-
 }
 
 
 
 
-module.exports = S;
+module.exports = Steg;

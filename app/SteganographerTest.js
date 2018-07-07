@@ -33,11 +33,25 @@ describe('Steg',()=>{
         instance.write(JSON.stringify(data));
         instance.commit();
         assert.deepStrictEqual(instance.read(),JSON.stringify(data));
+        console.log(instance.read());
+        console.log(instance.sizeOfData);
         done();
       });
     });
   });
-  
+  describe('sizeOfData',()=>{
+    it('Returns the size of the data',(done)=>{
+      let s = new S('data/sample.bmp');
+      let data = {username: 'myusername',password: 'mypassword'};
+      
+      s.ready((instance)=>{
+        instance.write(JSON.stringify(data));
+        instance.commit();
+        assert.strictEqual(instance.sizeOfData,JSON.stringify(data).length);
+        done();
+      });
+    });
+  });
   describe('#purge()',()=>{
     it('deletes the entire data on the storage medium and returns an empty string',(done)=>{
       let s = new S('data/sample.bmp');
@@ -51,6 +65,12 @@ describe('Steg',()=>{
       });
     });
   });
+
+
+
+
+
+ 
 
 
 });

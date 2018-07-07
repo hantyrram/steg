@@ -1,4 +1,6 @@
 {
  "DEFAULT_ENCODER":"twoBitEncoder",
- "MARKER" : ">>>ss"
+ "MARKER" : ">>>ss",
+ "STARTING_DATA" :"{}",
+ "DEFAULT_OFFSET" : 64
 }

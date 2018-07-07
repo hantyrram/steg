@@ -3,13 +3,12 @@ const filesystem = require('fs');
 const path = require('path');
 const StegError = require('./StegError');
 const encoder = require('./encoder');
-const DEFAULT_OFFSET = 1024;
+// const CONFIG.DEFAULT_OFFSET = 1024;
 /**
  * @var {Buffer} storageBuffer
  * Raw file content buffer
  */
 var storageBuffer = null;
-var writableOffset = 0; //the secret data's offset ??rename to dataOffset?
 var secret;
 var secret_max_length = 0;
 
@@ -29,6 +28,10 @@ class Steg{
  constructor(pathToFile){
   this.pathToFile = pathToFile;
   this.isReady = false;
+  this.sizeOfData = 0; //The length of the string
+  this.dataOffset;
+  this.sizeOfDataOffset;
+  
  }
 
  ready(callback){  
@@ -40,27 +43,31 @@ class Steg{
     storageBuffer = await initStorageBuffer(self.pathToFile); 
     if(markerFound(storageBuffer,CONFIG.MARKER) === false){
            console.log('CONFIG.MARKER Not Found');
-           let markerByteLength = storageBuffer.write(CONFIG.MARKER,DEFAULT_OFFSET);
+           let markerByteLength = storageBuffer.write(CONFIG.MARKER,CONFIG.DEFAULT_OFFSET);
            console.log(`markerByteLength = ${markerByteLength}`);
-           let offsetPlusNumBytesWritten = storageBuffer.writeUInt32BE(0,DEFAULT_OFFSET + markerByteLength + 1);
+           
+           self.sizeOfDataOffset = CONFIG.DEFAULT_OFFSET + markerByteLength + 1;
+
+           let offsetPlusNumBytesWritten = storageBuffer.writeUInt32BE(0,self.sizeOfDataOffset);
+
            console.log(`numBytesOfWrittenInt = ${offsetPlusNumBytesWritten}`);
-           writableOffset = offsetPlusNumBytesWritten + 1;
-           console.log(`Writable Offset = ${writableOffset}`);
+           self.dataOffset = offsetPlusNumBytesWritten + 1;
+           console.log(`Writable Offset = ${self.dataOffset}`);
            self.isReady = true;
-           secret_max_length = Math.floor((storageBuffer.length - writableOffset) / 4);//??
-           self.write("{}");//initialize
+           secret_max_length = Math.floor((storageBuffer.length - self.dataOffset) / 4);//??
+           self.write(CONFIG.STARTING_DATA);//initialize
            self.commit();
         }else{
-           writableOffset = storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 4 + 1 + 1;
+           self.dataOffset = storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 4 + 1 + 1;
            //check if there is existing data/secret by reading the length storage
-           let dataLength = storageBuffer.readUInt32BE(storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 1);
+           self.sizeOfData  = storageBuffer.readUInt32BE(storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 1);
            
-           if(dataLength > 0){//there is existing data
+           if(self.sizeOfData  > 0){//there is existing data
              //decode it
-             secret = encoder.decode(storageBuffer,dataLength,writableOffset);
+             secret = encoder.decode(storageBuffer,self.sizeOfData ,self.dataOffset);
            }
         }
-        secret_max_length = Math.floor((storageBuffer.length - writableOffset) / 4);//??divided by 4 when using the twoBitEncoder only
+        secret_max_length = Math.floor((storageBuffer.length - self.dataOffset) / 4);//??divided by 4 when using the twoBitEncoder only
 
         self.isReady = true;
         
@@ -95,7 +102,7 @@ class Steg{
    throw new StegError('Not enough storage');
   }
   storageBuffer.writeUInt32BE(str.length, storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 1);
-  storageBuffer = encoder.encode(str,storageBuffer,writableOffset);
+  storageBuffer = encoder.encode(str,storageBuffer,this.dataOffset);
  }
 
 
@@ -128,6 +135,7 @@ class Steg{
 
   let ret = ws.write(storageBuffer);
 
+  
  }
 
  /**
@@ -144,9 +152,10 @@ class Steg{
   }
 
   let dataLengthOffset = storageBuffer.indexOf(CONFIG.MARKER) + CONFIG.MARKER.length + 1;
-  secret = encoder.decode(storageBuffer,storageBuffer.readUInt32BE(dataLengthOffset),writableOffset); 
+  secret = encoder.decode(storageBuffer,storageBuffer.readUInt32BE(dataLengthOffset),this.dataOffset); 
   return secret;
  }
+
 
  purge(){
    this.write('');

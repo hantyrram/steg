@@ -1,0 +1,39 @@
+Serves as an storage engine. Uses an Encoder/Decoder to write data to file.
+Introduces several markers that identifies the image file as an steganographic image.
+
+
+construction - 
+  1. get the path to the file
+initialization  
+  2. check the existence/accessibility of the file
+  3. get the contents of the file, and store it on the storageBuffet
+  4. now check the storage buffer for the SOS_MARKER
+
+steg.storageBuffer - the Buffered content of the storage file
+steg.storageFilePath - The path to the storage file
+
+steg.SOS_MARKER - A string that markes a media/image, that tells the Steganographer if the image has already been used
+           - Serves as the starting point of the steganographic data.
+           - should only be set once.
+
+steg.OFFSET - The starting offset where steg.SOS_OFFSET will be written
+steg.SOS_OFFSET - Start of Steganography,offset where the start of the steganographic marker is, would usually equals steg.OFFSET
+steg.LOD_OFFSET - offset where the length of data is saved 32bit 4 bytes
+  = SOS_OFFSET + SOS_MARKER.LENGTH + 1
+steg.SOD_OFFSET - offset where the start of data is 
+  = LOD_OFFSET + 4(bytes,32 Bits) + 1
+
+steg.ready() - returns a Promise that resolves to an initialized Steg instance
+             - Checks the buffer for a stegMarker;
+
+steg.write(str); - writes the data to the internal buffer
+steg.commit(); - writes the storageBuffer to the media
+steg.read();- returns the data as  UTF-8 string
+
+steg.sizeOfData - the str.length passed on steg.write, readUInt32BE from the steg.LOD_OFFSET
+
+
+
+testing load from cache means
+same storage buffer,
+same writable offset

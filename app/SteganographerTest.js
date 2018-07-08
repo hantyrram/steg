@@ -1,8 +1,12 @@
 const assert = require('assert'); 
 
-const S = require('../');//from index
+var S = require('../');//from index
 const StegError = require('./StegError');//relative path
 describe('Steg',()=>{
+
+  beforeEach(function(){
+    delete require.cache[require.resolve('../')];    
+  });
 
   describe('#ready()',()=>{
     it('returns an Steg instance when a valid path is passed during instantiation',(done)=>{

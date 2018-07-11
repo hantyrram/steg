@@ -12,7 +12,7 @@ describe('Steg',()=>{
   });
 
   describe('#init()',()=>{
-    it('returns an Steg instance when a valid path is passed during instantiation',(done)=>{
+    it('resolves an Steg instance when a valid path is passed during instantiation',(done)=>{
       let s = new S('data/sample.bmp');
       let initialize = s.init();
       initialize.then((steg)=>{
@@ -23,7 +23,19 @@ describe('Steg',()=>{
         done();
       });
     });
-  
+
+    it('rejects when an  invalid path is passed during instantiation',(done)=>{
+      let s = new S('data/invalid.bmp');
+      let initialize = s.init();
+      initialize.then((steg)=>{
+        done();
+      }).catch(e=>{
+        assert(e instanceof StegError);
+        done();
+      });
+    });
+
+  });
   describe('#write()',()=>{
     it('throws an error when called prior to calling #init()',()=>{
       let s = new S('data/sample.bmp');
@@ -37,8 +49,6 @@ describe('Steg',()=>{
       });
     });
    }); 
-  });
-  
     
   describe('#read()',()=>{
     it('returns the data that was previously written/committed',(done)=>{

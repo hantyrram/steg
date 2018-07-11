@@ -1,10 +1,14 @@
 {
-  "name": "steganographer",
+  "name": "steg",
   "version": "0.0.5",
   "description": "Performs Steganography",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hantyrram/steg.git"
+  },
   "scripts": {
-    "test": "mocha app/SteganographerTest"
+    "test": "mocha app/StegTest"
   },
   "author": "Ronskielog",
   "license": "ISC",

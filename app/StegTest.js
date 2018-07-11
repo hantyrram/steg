@@ -3,11 +3,12 @@ const assert = require('assert');
 let S;
 
 const StegError = require('./StegError');//relative path
+
 describe('Steg',()=>{
 
   beforeEach(function(){
-    delete require.cache[require.resolve('./Steganographer')];  
-    S = require('./Steganographer');//fresh copy
+    delete require.cache[require.resolve('./Steg')];  
+    S = require('./Steg');//fresh copy
   });
 
   describe('#init()',()=>{
@@ -30,11 +31,15 @@ describe('Steg',()=>{
       function assertParam(){
         s.write(JSON.stringify(data));      
       }      
-      assert.throws(assertParam,{name:'StegError',message:'S is not ready'});
+      assert.throws(assertParam,function(e){
+       if(e.name === 'StegError') return true;
+       return false;
+      });
     });
    }); 
   });
   
+    
   describe('#read()',()=>{
     it('returns the data that was previously written/committed',(done)=>{
       let s = new S('data/sample.bmp');
@@ -87,7 +92,10 @@ describe('Steg',()=>{
 
 
 
- 
+
+
+
+
 
 
 });

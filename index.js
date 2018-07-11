@@ -1,6 +1,7 @@
 //load the config
+
 const config = require('./config');
-const Steganographer = require('./app/Steganographer');
+const Steg = require('./app/Steg');
 
 /**
  * Makes the configuration keys available globally
@@ -19,5 +20,5 @@ function loadConfig(c){
 
 loadConfig(config);
 
-module.exports = Steganographer;
+module.exports = Steg;
 

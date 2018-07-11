@@ -38,9 +38,14 @@ let isReady = false;
  * @var isNew - storageFilePath is a new storage
  */
 let isNew = true;
+
 /**
- * @ver 0.0.2
+ * @var maxStorageSize - The maximum number of bytes available as storage for the data. 
+ * Equals to storageBuffer.length - sodOffset
  */
+let maxStorageSize;
+
+
 class Steg{
   constructor(storageFilePath){
     this.storageFilePath = storageFilePath;
@@ -92,6 +97,7 @@ class Steg{
     sosOffset = indexOfSOS_MARKER;
     lodOffset = sosOffset + CONFIG.SOS_MARKER.length + 1;
     sodOffset = lodOffset + 4 + 1; //lod = 32 bit 4 bytes
+    maxStorageSize = storageBuffer.length - sodOffset;
     isReady = true;
     isNew = true;
     return this;
@@ -108,14 +114,36 @@ class Steg{
   * @param {String} str - The string to write
   */
  write(str){
+
   if(isReady === false){
    throw new StegError('S is not ready');
   }
-  // if(str.length >= secret_max_length){
-  //  throw new StegError('Not enough storage');
-  // }
+  
+  let sampleSizeOfStr = encoder.getSampleSize(str);
+  
+  if(!this.enoughStorageFor(str)){
+   throw new StegError('Not Enough Storage');
+  }
+
   storageBuffer.writeUInt32BE(str.length, lodOffset);
   storageBuffer = encoder.encode(str,storageBuffer,sodOffset);
+ }
+
+ /**
+  * Tests if there is enough storage for the string data. Make sure init() was called prior to function invocation
+  * @return {Boolean} - true if there is enough storage for the str, otherwise false
+  */
+ enoughStorageFor(str){
+
+  if(isReady === false){
+   throw new StegError('S is not ready');
+  }
+
+  let sampleSizeOfStr = encoder.getSampleSize(str);
+  if(maxStorageSize < sampleSizeOfStr){
+   return false;
+  }
+  return true;
  }
 
   /**
@@ -163,6 +191,7 @@ class Steg{
    }
  }
 
+ 
   get sizeOfData(){
     return storageBuffer === null? 0: storageBuffer.readUInt32BE(lodOffset);
   }
@@ -173,6 +202,10 @@ class Steg{
 
   get isNew(){
     return isNew;
+  }
+
+  get maxStorageSize(){
+   return maxStorageSize;
   }
   
 }

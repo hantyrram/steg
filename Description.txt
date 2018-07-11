@@ -7,7 +7,7 @@ construction -
 initialization  
   2. check the existence/accessibility of the file
   3. get the contents of the file, and store it on the storageBuffet
-  4. now check the storage buffer for the SOS_MARKER
+  4. now check the storage buffer for the SOS_MARKER         
 
 steg.storageBuffer - the Buffered content of the storage file
 steg.storageFilePath - The path to the storage file

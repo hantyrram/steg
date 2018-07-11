@@ -2,5 +2,5 @@
  "DEFAULT_ENCODER":"twoBitEncoder",
  "SOS_MARKER" : ">>>ss",
  "STARTING_DATA" :"{}",
- "DEFAULT_SOS_OFFSET" : 64
+ "DEFAULT_SOS_OFFSET" : 512
 }

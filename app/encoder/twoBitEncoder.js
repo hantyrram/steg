@@ -1,5 +1,6 @@
 
 const EncoderError = require('./EncoderError');
+
 /**
  * Encodes two bits of data unto an existing byte.Stores 2 bit data unto the 2 least significant bit,
  * preserving the existing 6 bits of data from the storageBuffer. The storage buffer's size should be greater 
@@ -22,22 +23,17 @@ function encode(data,storageBuffer,storageBufferOffset = 0){
    secret = Number.parseInt(twoBitified.shift(),2);    
    
    //OR the current byte in the content with the 2 bit(in int) data 
-   //the 2 bit data can only be 0,1,2,3 values 
+   //the 2 bit data can only be of 0,1,2,3 number values 
    //so ORing will only affect the last 2 bits of each byte from the content
-   // console.log(`Data @ ${this.offset} before shift right = ${this.content[this.offset]}`);
     index = storageBufferOffset + increment;
- 
+    //zero-fy the last 2 bits of the data's original byte, by bit shifting right, then bit shifting left
     let removed2LeastSignificantBits = Number.parseInt(storageBuffer[index],'hex') >> 2; // '11111111' = 00111111
+    let zeroZeroPaddedByteFromStorageBuffer = removed2LeastSignificantBits << 2; 
     //00111111 = 11111100 now we can encode the data by ORing with 00 anyting we OR with 00 equals the data
-    let insertZerozOnThe2LeastSignificantBits = removed2LeastSignificantBits << 2; 
- 
-    // console.log(`Data @ ${this.offset} after shift left = ${insertZerozOnThe2LeastSignificantBits}`);
-    storageBuffer[index] = (insertZerozOnThe2LeastSignificantBits | secret);        
-    // console.log(`Secret =  ${secret}  / content @ offset ${this.offset} after | = ${this.content[this.offset]}`);
-    // console.log(`content @offset after OR = ${this.content[this.offset]}`);
-    // this.offset += 1;
+    storageBuffer[index] = (zeroZeroPaddedByteFromStorageBuffer | secret);        
     increment++;
   }
+  
   return storageBuffer;
  }
  
@@ -66,6 +62,12 @@ function encode(data,storageBuffer,storageBufferOffset = 0){
    return result;
   }
  
+  /**
+   * @return {Number} - Number of bytes that this encoder uses/needs in order to encode the data unto the buffer
+   */
+  function getSampleSize(str){
+   return twoBitifier(str).length;
+  }
  
  /**
   * Takes a string, gets the binary representation of the string then divide each byte into 4. Each 2 bit value 
@@ -115,5 +117,6 @@ function encode(data,storageBuffer,storageBufferOffset = 0){
  module.exports = {
   encode: encode,
   decode: decode,
+  getSampleSize: getSampleSize,
   twoBitifier: twoBitifier
 }
